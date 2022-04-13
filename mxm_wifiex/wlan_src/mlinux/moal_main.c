@@ -2312,6 +2312,15 @@ static t_u32 woal_process_init_cfg(moal_handle *handle, t_u8 *data, t_size size)
 							       "Set MAC address failed\n");
 							goto done;
 						}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+						dev_addr_mod(
+							handle->priv[i]
+								->netdev,
+							0,
+							handle->priv[i]
+								->current_addr,
+							ETH_ALEN);
+#else
 						moal_memcpy_ext(
 							handle,
 							handle->priv[i]
@@ -2320,6 +2329,7 @@ static t_u32 woal_process_init_cfg(moal_handle *handle, t_u8 *data, t_size size)
 							handle->priv[i]
 								->current_addr,
 							ETH_ALEN, ETH_ALEN);
+#endif
 						index++; /* Mark found one
 							    interface matching
 							  */
@@ -5174,8 +5184,12 @@ int woal_set_mac_address(struct net_device *dev, void *addr)
 		goto done;
 	}
 	HEXDUMP("priv->MacAddr:", priv->current_addr, ETH_ALEN);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+	dev_addr_mod(dev, 0, priv->current_addr, ETH_ALEN);
+#else
 	moal_memcpy_ext(priv->phandle, dev->dev_addr, priv->current_addr,
 			ETH_ALEN, ETH_ALEN);
+#endif
 done:
 	LEAVE();
 	return ret;
@@ -6614,8 +6628,12 @@ void woal_init_priv(moal_private *priv, t_u8 wait_option)
 	}
 
 	woal_request_set_mac_address(priv, MOAL_IOCTL_WAIT);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+	dev_addr_mod(priv->netdev, 0, priv->current_addr, ETH_ALEN);
+#else
 	moal_memcpy_ext(priv->phandle, priv->netdev->dev_addr,
 			priv->current_addr, ETH_ALEN, ETH_ALEN);
+#endif
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
 	priv->host_mlme = 0;
 	priv->auth_flag = 0;
