@@ -1552,7 +1552,7 @@ mlan_status moal_recv_packet(t_void *pmoal, pmlan_buffer pmbuf)
 						netif_receive_skb(skb);
 						local_bh_enable();
 					} else {
-						netif_rx_ni(skb);
+						netif_rx(skb);
 					}
 				}
 			}
