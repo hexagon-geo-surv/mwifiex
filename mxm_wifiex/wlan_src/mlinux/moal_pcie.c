@@ -1094,13 +1094,13 @@ static mlan_status woal_pcie_preinit(struct pci_dev *pdev)
 	pci_set_master(pdev);
 
 	PRINTM(MINFO, "Try set_consistent_dma_mask(32)\n");
-	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+	ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
 	if (ret) {
 		PRINTM(MERROR, "set_dma_mask(32) failed\n");
 		goto err_set_dma_mask;
 	}
 
-	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+	ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
 	if (ret) {
 		PRINTM(MERROR, "set_consistent_dma_mask(64) failed\n");
 		goto err_set_dma_mask;
@@ -1136,13 +1136,13 @@ static mlan_status woal_pcie_init(pcie_service_card *card)
 	pci_set_master(pdev);
 
 	PRINTM(MINFO, "Try set_consistent_dma_mask(32)\n");
-	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+	ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
 	if (ret) {
 		PRINTM(MERROR, "set_dma_mask(32) failed\n");
 		goto err_set_dma_mask;
 	}
 
-	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+	ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
 	if (ret) {
 		PRINTM(MERROR, "set_consistent_dma_mask(64) failed\n");
 		goto err_set_dma_mask;
