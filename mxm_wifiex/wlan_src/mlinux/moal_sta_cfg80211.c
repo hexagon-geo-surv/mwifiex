@@ -95,9 +95,16 @@ static int woal_cfg80211_dump_survey(struct wiphy *wiphy,
 				     struct net_device *dev, int idx,
 				     struct survey_info *survey);
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)
+static int woal_cfg80211_get_channel(struct wiphy *wiphy,
+				     struct wireless_dev *wdev,
+				     unsigned int link_id,
+				     struct cfg80211_chan_def *chandef);
+#else
 static int woal_cfg80211_get_channel(struct wiphy *wiphy,
 				     struct wireless_dev *wdev,
 				     struct cfg80211_chan_def *chandef);
+#endif
 #endif
 static int woal_cfg80211_set_power_mgmt(struct wiphy *wiphy,
 					struct net_device *dev, bool enabled,
@@ -5097,7 +5104,11 @@ static int woal_cfg80211_disconnect(struct wiphy *wiphy, struct net_device *dev,
 	if (priv->media_connected == MFALSE) {
 		PRINTM(MMSG, " Already disconnected\n");
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)
+		if (priv->wdev->connected &&
+#else
 		if (priv->wdev->current_bss &&
+#endif
 		    (priv->wdev->iftype == NL80211_IFTYPE_STATION ||
 		     priv->wdev->iftype == NL80211_IFTYPE_P2P_CLIENT)) {
 			priv->cfg_disconnect = MTRUE;
@@ -5414,10 +5425,18 @@ done:
 	return ret;
 }
 
+
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)
+static int woal_cfg80211_get_channel(struct wiphy *wiphy,
+				     struct wireless_dev *wdev,
+				     unsigned int link_id,
+				     struct cfg80211_chan_def *chandef)
+#else
 static int woal_cfg80211_get_channel(struct wiphy *wiphy,
 				     struct wireless_dev *wdev,
 				     struct cfg80211_chan_def *chandef)
+#endif
 {
 	moal_private *priv = (moal_private *)woal_get_netdev_priv(wdev->netdev);
 	chan_band_info channel;
