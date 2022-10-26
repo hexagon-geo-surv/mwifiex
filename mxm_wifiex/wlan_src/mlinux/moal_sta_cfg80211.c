@@ -2345,6 +2345,9 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 {
 	struct cfg80211_bss *bss = NULL;
 	unsigned long flags;
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	struct cfg80211_rx_assoc_resp resp;
+#endif
 
 	if (priv) {
 		if (priv->auth_flag & HOST_MLME_ASSOC_DONE) {
@@ -2393,21 +2396,27 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 					}
 					spin_unlock_irqrestore(
 						&priv->connect_lock, flags);
-
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 1, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+					resp.uapsd_queues = -1;
+					resp.links[0].bss = bss;
+					resp.buf = assoc_rsp->assoc_resp_buf;
+					resp.len = assoc_rsp->assoc_resp_len;
+					resp.uapsd_queues = -1;
+					resp.req_ies = NULL;
+					resp.req_ies_len = 0;
+					cfg80211_rx_assoc_resp(priv->netdev, &resp);
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 1, 0)
 					cfg80211_rx_assoc_resp(
 						priv->netdev, bss,
 						assoc_rsp->assoc_resp_buf,
 						assoc_rsp->assoc_resp_len, -1,
 						NULL, 0);
-#else
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)
 					cfg80211_rx_assoc_resp(
 						priv->netdev, bss,
 						assoc_rsp->assoc_resp_buf,
 						assoc_rsp->assoc_resp_len, -1);
-#else
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
 					cfg80211_rx_assoc_resp(
 						priv->netdev, bss,
 						assoc_rsp->assoc_resp_buf,
@@ -2417,8 +2426,6 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 						priv->netdev, bss,
 						assoc_rsp->assoc_resp_buf,
 						assoc_rsp->assoc_resp_len);
-#endif
-#endif
 #endif
 				}
 			}
@@ -8267,16 +8274,22 @@ int woal_cfg80211_update_ft_ies(struct wiphy *wiphy, struct net_device *dev,
 							 MOAL_IOCTL_WAIT);
 			passoc_rsp = (IEEEtypes_AssocRsp_t *)
 					     assoc_rsp.assoc_resp_buf;
+
+			cfg80211_roamed(priv->netdev, &roam_info, GFP_KERNEL);
+
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+			roam_info.links[0].bssid = priv->cfg_bssid;
+#else
 			roam_info.bssid = priv->cfg_bssid;
+#endif
 			roam_info.req_ie = priv->sme_current.ie;
 			roam_info.req_ie_len = priv->sme_current.ie_len;
 			roam_info.resp_ie = passoc_rsp->ie_buffer;
 			roam_info.resp_ie_len = assoc_rsp.assoc_resp_len -
 						ASSOC_RESP_FIXED_SIZE;
 			cfg80211_roamed(priv->netdev, &roam_info, GFP_KERNEL);
-#else
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 0, 0)
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 0, 0)
 			cfg80211_roamed(priv->netdev, NULL, priv->cfg_bssid,
 					priv->sme_current.ie,
 					priv->sme_current.ie_len,
@@ -8292,7 +8305,6 @@ int woal_cfg80211_update_ft_ies(struct wiphy *wiphy, struct net_device *dev,
 					assoc_rsp.assoc_resp_len -
 						ASSOC_RESP_FIXED_SIZE,
 					GFP_KERNEL);
-#endif
 #endif
 			PRINTM(MMSG,
 			       "Fast BSS transition to bssid " MACSTR
@@ -8727,7 +8739,11 @@ void woal_start_roaming(moal_private *priv)
 		}
 #endif
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		roam_info.links[0].bssid = priv->cfg_bssid;
+#else
 		roam_info.bssid = priv->cfg_bssid;
+#endif
 		roam_info.req_ie = ie;
 		roam_info.req_ie_len = ie_len;
 		roam_info.resp_ie = passoc_rsp->ie_buffer;
@@ -8801,11 +8817,27 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 	if (params->ext_capab_len)
 		req_len += sizeof(MrvlIEtypesHeader_t) + params->ext_capab_len;
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.supported_rates_len)
+		req_len += sizeof(MrvlIEtypesHeader_t) +
+			   params->link_sta_params.supported_rates_len;
+#elif
 	if (params->supported_rates_len)
 		req_len += sizeof(MrvlIEtypesHeader_t) +
 			   params->supported_rates_len;
+#endif
 	if (params->uapsd_queues || params->max_sp)
 		req_len += sizeof(MrvlIEtypesHeader_t) + sizeof(qosinfo);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.ht_capa)
+		req_len += sizeof(MrvlIEtypesHeader_t) +
+			   sizeof(struct ieee80211_ht_cap);
+	if (params->link_sta_params.vht_capa)
+		req_len += sizeof(MrvlIEtypesHeader_t) +
+			   sizeof(struct ieee80211_vht_cap);
+	if (params->link_sta_params.opmode_notif_used)
+		req_len += sizeof(MrvlIEtypesHeader_t) + sizeof(u8);
+#else
 	if (params->ht_capa)
 		req_len += sizeof(MrvlIEtypesHeader_t) +
 			   sizeof(struct ieee80211_ht_cap);
@@ -8816,8 +8848,11 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 	if (params->opmode_notif_used)
 		req_len += sizeof(MrvlIEtypesHeader_t) + sizeof(u8);
 #endif
-
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.he_capa_len)
+		req_len += sizeof(MrvlExtIEtypesHeader_t) + params->link_sta_params.he_capa_len;
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
 	if (params->he_capa_len)
 		req_len += sizeof(MrvlExtIEtypesHeader_t) + params->he_capa_len;
 #endif
@@ -8867,6 +8902,15 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 		tlv = (MrvlIEtypes_Data_t *)pos;
 	}
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.supported_rates_len) {
+		tlv = (MrvlIEtypes_Data_t *)pos;
+		tlv->header.type = SUPPORTED_RATES;
+		tlv->header.len = params->link_sta_params.supported_rates_len;
+		moal_memcpy_ext(priv->phandle, tlv->data,
+				params->link_sta_params.supported_rates, tlv->header.len,
+				tlv->header.len);
+#elif
 	if (params->supported_rates_len) {
 		tlv = (MrvlIEtypes_Data_t *)pos;
 		tlv->header.type = SUPPORTED_RATES;
@@ -8874,6 +8918,7 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 		moal_memcpy_ext(priv->phandle, tlv->data,
 				params->supported_rates, tlv->header.len,
 				tlv->header.len);
+#endif
 		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
 		bss->param.sta_info.tlv_len +=
 			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
@@ -8891,42 +8936,61 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
 		tlv = (MrvlIEtypes_Data_t *)pos;
 	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.ht_capa) {
+#else
 	if (params->ht_capa) {
+#endif
 		tlv = (MrvlIEtypes_Data_t *)pos;
 		tlv->header.type = HT_CAPABILITY;
 		tlv->header.len = sizeof(struct ieee80211_ht_cap);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		moal_memcpy_ext(priv->phandle, tlv->data, params->link_sta_params.ht_capa,
+				tlv->header.len, tlv->header.len);
+#else
 		moal_memcpy_ext(priv->phandle, tlv->data, params->ht_capa,
 				tlv->header.len, tlv->header.len);
+#endif
 		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
 		bss->param.sta_info.tlv_len +=
 			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
 		tlv = (MrvlIEtypes_Data_t *)pos;
 	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.vht_capa) {
+#else
 	if (params->vht_capa) {
+#endif
 		tlv = (MrvlIEtypes_Data_t *)pos;
 		tlv->header.type = VHT_CAPABILITY;
 		tlv->header.len = sizeof(struct ieee80211_vht_cap);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+		moal_memcpy_ext(priv->phandle, tlv->data, params->link_sta_params.vht_capa,
+				tlv->header.len, tlv->header.len);
+#else
 		moal_memcpy_ext(priv->phandle, tlv->data, params->vht_capa,
 				tlv->header.len, tlv->header.len);
-		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
-		bss->param.sta_info.tlv_len +=
-			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
-		tlv = (MrvlIEtypes_Data_t *)pos;
-	}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
-	if (params->opmode_notif_used) {
-		tlv = (MrvlIEtypes_Data_t *)pos;
-		tlv->header.type = OPER_MODE_NTF;
-		tlv->header.len = sizeof(u8);
-		moal_memcpy_ext(priv->phandle, tlv->data, &params->opmode_notif,
-				tlv->header.len, tlv->header.len);
-		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
-		bss->param.sta_info.tlv_len +=
-			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
-		tlv = (MrvlIEtypes_Data_t *)pos;
-	}
 #endif
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
+		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
+		bss->param.sta_info.tlv_len +=
+			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
+		tlv = (MrvlIEtypes_Data_t *)pos;
+	}
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+	if (params->link_sta_params.he_capa_len) {
+		ext_tlv = (MrvlExtIEtypes_Data_t *)pos;
+		ext_tlv->header.type = EXTENSION;
+		ext_tlv->header.len = params->link_sta_params.he_capa_len + sizeof(u8);
+		ext_tlv->header.ext_id = HE_CAPABILITY;
+		moal_memcpy_ext(priv->phandle, ext_tlv->data,
+				(u8 *)params->link_sta_params.he_capa, params->link_sta_params.he_capa_len,
+				params->link_sta_params.he_capa_len);
+		pos += sizeof(MrvlExtIEtypesHeader_t) + params->link_sta_params.he_capa_len;
+		bss->param.sta_info.tlv_len +=
+			sizeof(MrvlExtIEtypesHeader_t) + params->link_sta_params.he_capa_len;
+		tlv = (MrvlIEtypes_Data_t *)pos;
+	}
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
 	if (params->he_capa_len) {
 		ext_tlv = (MrvlExtIEtypes_Data_t *)pos;
 		ext_tlv->header.type = EXTENSION;
@@ -8938,6 +9002,18 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 		pos += sizeof(MrvlExtIEtypesHeader_t) + params->he_capa_len;
 		bss->param.sta_info.tlv_len +=
 			sizeof(MrvlExtIEtypesHeader_t) + params->he_capa_len;
+		tlv = (MrvlIEtypes_Data_t *)pos;
+	}
+#else
+	if (params->opmode_notif_used) {
+		tlv = (MrvlIEtypes_Data_t *)pos;
+		tlv->header.type = OPER_MODE_NTF;
+		tlv->header.len = sizeof(u8);
+		moal_memcpy_ext(priv->phandle, tlv->data, &params->opmode_notif,
+				tlv->header.len, tlv->header.len);
+		pos += sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
+		bss->param.sta_info.tlv_len +=
+			sizeof(MrvlIEtypesHeader_t) + tlv->header.len;
 		tlv = (MrvlIEtypes_Data_t *)pos;
 	}
 #endif
