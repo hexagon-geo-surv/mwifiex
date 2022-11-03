@@ -2346,7 +2346,7 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 	struct cfg80211_bss *bss = NULL;
 	unsigned long flags;
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
-	struct cfg80211_rx_assoc_resp resp;
+	struct cfg80211_rx_assoc_resp resp = {0};
 #endif
 
 	if (priv) {
@@ -2397,7 +2397,6 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 					spin_unlock_irqrestore(
 						&priv->connect_lock, flags);
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
-					resp.uapsd_queues = -1;
 					resp.links[0].bss = bss;
 					resp.buf = assoc_rsp->assoc_resp_buf;
 					resp.len = assoc_rsp->assoc_resp_len;
