@@ -2310,8 +2310,10 @@ mlan_status moal_recv_event(t_void *pmoal, pmlan_event pmevent)
 		ref_handle = (moal_handle *)priv->phandle->pref_mac;
 		if (ref_handle)
 			ref_handle->driver_status = MTRUE;
+#ifdef DEBUG_LEVEL1
 		if (drvdbg & MFW_D)
 			auto_fw_dump = MTRUE;
+#endif
 
 		woal_moal_debug_info(priv, NULL, MFALSE);
 		if (!auto_fw_dump && !handle->fw_dump)

@@ -5526,8 +5526,10 @@ void woal_tx_timeout(struct net_device *dev
 	woal_set_trans_start(dev);
 
 	if (priv->num_tx_timeout == NUM_TX_TIMEOUT_THRESHOLD) {
+#ifdef DEBUG_LEVEL1
 		if (drvdbg & MFW_D)
 			auto_fw_dump = MTRUE;
+#endif
 		woal_mlan_debug_info(priv);
 		woal_moal_debug_info(priv, NULL, MFALSE);
 		priv->phandle->driver_status = MTRUE;
@@ -7787,8 +7789,10 @@ t_void woal_store_firmware_dump(moal_handle *phandle, mlan_event *pmevent)
 	type = woal_le16_to_cpu(*(t_u16 *)(pmevent->event_buf + OFFSET_TYPE));
 
 	if (seqnum == 1) {
+#ifdef DEBUG_LEVEL1
 		if (drvdbg & MFW_D)
 			drvdbg &= ~MFW_D;
+#endif
 		if (phandle->fw_dump == MFALSE) {
 			PRINTM(MMSG, "=====FW trigger dump====\n");
 			phandle->fw_dump = MTRUE;
@@ -8569,7 +8573,7 @@ void woal_moal_debug_info(moal_private *priv, moal_handle *handle, u8 flag)
 		LEAVE();
 		return;
 	}
-
+#ifdef DEBUG_LEVEL1
 #ifdef PCIE
 	if (IS_PCIE(phandle->card_type)) {
 		if (phandle->ops.reg_dbg && (drvdbg & (MREG_D | MFW_D))) {
@@ -8598,7 +8602,6 @@ void woal_moal_debug_info(moal_private *priv, moal_handle *handle, u8 flag)
 		}
 	}
 #endif
-#ifdef DEBUG_LEVEL1
 	if (drvdbg & MFW_D) {
 		drvdbg &= ~MFW_D;
 		phandle->fw_dbg = MTRUE;
