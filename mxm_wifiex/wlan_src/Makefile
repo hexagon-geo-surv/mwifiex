@@ -59,7 +59,7 @@ CONFIG_PCIE9098=n
 # n: NO DEBUG
 # 1: Only PRINTM(MMSG,...), PRINTM(MFATAL,...), ...
 # 2: All PRINTM()
-CONFIG_DEBUG=1
+CONFIG_DEBUG=n
 
 # Enable STA mode support
 CONFIG_STA_SUPPORT=y
