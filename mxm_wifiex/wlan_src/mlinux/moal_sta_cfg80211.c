@@ -8820,7 +8820,7 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 	if (params->link_sta_params.supported_rates_len)
 		req_len += sizeof(MrvlIEtypesHeader_t) +
 			   params->link_sta_params.supported_rates_len;
-#elif
+#else
 	if (params->supported_rates_len)
 		req_len += sizeof(MrvlIEtypesHeader_t) +
 			   params->supported_rates_len;
@@ -8909,7 +8909,7 @@ int woal_cfg80211_uap_add_station(struct wiphy *wiphy, struct net_device *dev,
 		moal_memcpy_ext(priv->phandle, tlv->data,
 				params->link_sta_params.supported_rates, tlv->header.len,
 				tlv->header.len);
-#elif
+#else
 	if (params->supported_rates_len) {
 		tlv = (MrvlIEtypes_Data_t *)pos;
 		tlv->header.type = SUPPORTED_RATES;
