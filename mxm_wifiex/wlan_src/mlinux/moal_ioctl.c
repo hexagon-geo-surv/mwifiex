@@ -2738,7 +2738,7 @@ done:
  *  @return        MLAN_STATUS_SUCCESS/MLAN_STATUS_PENDING -- success, otherwise
  * fail
  */
-static mlan_status woal_set_ipv6_ra_offload(moal_handle *handle, t_u8 enable)
+static mlan_status __maybe_unused woal_set_ipv6_ra_offload(moal_handle *handle, t_u8 enable)
 {
 	mlan_status ret = MLAN_STATUS_SUCCESS;
 	moal_private *priv = NULL;
@@ -2794,7 +2794,7 @@ done:
  *  @return        MLAN_STATUS_SUCCESS/MLAN_STATUS_PENDING -- success, otherwise
  * fail
  */
-static mlan_status woal_set_ipv6_ns_offload(moal_handle *handle)
+static mlan_status __maybe_unused woal_set_ipv6_ns_offload(moal_handle *handle)
 {
 	mlan_status ret = MLAN_STATUS_SUCCESS;
 	mlan_ds_misc_cfg *misc = NULL;
