@@ -4750,7 +4750,9 @@ void woal_cfg80211_notify_channel(moal_private *priv,
 #if KERNEL_VERSION(3, 8, 0) <= CFG80211_VERSION_CODE
 	if (MLAN_STATUS_SUCCESS ==
 	    woal_chandef_create(priv, &chandef, pchan_info)) {
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+		cfg80211_ch_switch_notify(priv->netdev, &priv->chan, 0, 0);
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(5, 19, 2)
 		cfg80211_ch_switch_notify(priv->netdev, &chandef, 0);
 #else
 		cfg80211_ch_switch_notify(priv->netdev, &chandef);
