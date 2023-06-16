@@ -5474,9 +5474,15 @@ static int woal_priv_get_ap(moal_private *priv, t_u8 *respbuf, t_u32 respbuflen)
 		return -EFAULT;
 
 	if (bss_info.media_connected == MTRUE) {
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 2, 0)
+		moal_memcpy_ext(priv->phandle, mwr->u.ap_addr.sa_data,
+				&bss_info.bssid, MLAN_MAC_ADDR_LENGTH,
+				sizeof(mwr->u.ap_addr.sa_data_min));
+#else
 		moal_memcpy_ext(priv->phandle, mwr->u.ap_addr.sa_data,
 				&bss_info.bssid, MLAN_MAC_ADDR_LENGTH,
 				sizeof(mwr->u.ap_addr.sa_data));
+#endif
 	} else {
 		memset(mwr->u.ap_addr.sa_data, 0, MLAN_MAC_ADDR_LENGTH);
 	}
