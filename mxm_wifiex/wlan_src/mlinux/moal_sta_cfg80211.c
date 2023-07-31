@@ -7031,16 +7031,14 @@ void woal_check_auto_tdls(struct wiphy *wiphy, struct net_device *dev)
 		spin_unlock_irqrestore(&priv->tdls_lock, flags);
 	}
 	if (tdls_discovery)
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)
 		woal_cfg80211_tdls_mgmt(wiphy, dev, bcast_addr,
 					TDLS_DISCOVERY_REQUEST, 1, 0, 0, 0,
 					NULL, 0);
-#else
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)
 		woal_cfg80211_tdls_mgmt(wiphy, dev, bcast_addr,
 					TDLS_DISCOVERY_REQUEST, 1, 0, 0, NULL,
 					0);
-#endif
 #else
 		woal_cfg80211_tdls_mgmt(wiphy, dev, bcast_addr,
 					TDLS_DISCOVERY_REQUEST, 1, 0, NULL, 0);
@@ -7759,8 +7757,7 @@ int woal_cfg80211_tdls_mgmt(struct wiphy *wiphy, struct net_device *dev,
 			    t_u16 status_code, t_u32 peer_capability,
 			    bool initiator, const t_u8 *extra_ies,
 			    size_t extra_ies_len)
-#else
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)
 /**
  * @brief Tx TDLS packet
  *
@@ -7804,7 +7801,6 @@ int woal_cfg80211_tdls_mgmt(struct wiphy *wiphy, struct net_device *dev,
 			    t_u8 *peer, u8 action_code, t_u8 dialog_token,
 			    t_u16 status_code, const t_u8 *extra_ies,
 			    size_t extra_ies_len)
-#endif
 #endif
 {
 	moal_private *priv = (moal_private *)woal_get_netdev_priv(dev);
