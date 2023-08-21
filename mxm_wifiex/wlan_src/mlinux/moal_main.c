@@ -653,6 +653,7 @@ static struct _card_info card_info_PCIEIW62X = {
 };
 #endif
 
+#ifdef PCIEAW693
 static struct _card_info card_info_PCIEAW693 = {
 	.embedded_supp = 1,
 	.drcs = 1,
@@ -675,6 +676,7 @@ static struct _card_info card_info_PCIEAW693 = {
 	.sniffer_support = 1,
 	.per_pkt_cfg_support = 1,
 };
+#endif
 
 #ifdef USB8801
 static struct _card_info card_info_USB8801 = {
@@ -8648,9 +8650,11 @@ static int woal_get_card_info(moal_handle *phandle)
 		phandle->card_info = &card_info_PCIE9097;
 		break;
 #endif
+#ifdef PCIEAW693
 	case CARD_TYPE_PCIEAW693:
 		phandle->card_info = &card_info_PCIEAW693;
 		break;
+#endif
 #ifdef PCIEIW62X
 	case CARD_TYPE_PCIEIW62X:
 		phandle->card_info = &card_info_PCIEIW62X;
