@@ -4790,7 +4790,7 @@ done:
 		priv->phandle->scan_priv = NULL;
 		spin_unlock_irqrestore(&priv->phandle->scan_req_lock, flags);
 	} else {
-		PRINTM(MMSG, "wlan: %s START SCAN\n", dev->name);
+		PRINTM(MINFO, "wlan: %s START SCAN\n", dev->name);
 		queue_delayed_work(
 			priv->phandle->evt_workqueue,
 			&priv->phandle->scan_timeout_work,
@@ -4806,7 +4806,7 @@ static void woal_cfg80211_abort_scan(struct wiphy *wiphy,
 {
 	moal_private *priv = (moal_private *)woal_get_netdev_priv(wdev->netdev);
 	ENTER();
-	PRINTM(MMSG, "wlan: ABORT SCAN start\n");
+	PRINTM(MINFO, "wlan: ABORT SCAN start\n");
 	woal_cancel_scan(priv, MOAL_IOCTL_WAIT);
 	LEAVE();
 	return;
@@ -6644,7 +6644,7 @@ int woal_cfg80211_sched_scan_start(struct wiphy *wiphy, struct net_device *dev,
 	       MAC2STR(priv->scan_cfg.random_mac));
 	if (MLAN_STATUS_SUCCESS ==
 	    woal_request_bgscan(priv, MOAL_IOCTL_WAIT, &priv->scan_cfg)) {
-		PRINTM(MMSG, "wlan: sched scan start\n");
+		PRINTM(MINFO, "wlan: sched scan start\n");
 		priv->sched_scanning = MTRUE;
 		priv->bg_scan_start = MTRUE;
 		priv->bg_scan_reported = MFALSE;
@@ -6675,7 +6675,7 @@ int woal_cfg80211_sched_scan_stop(struct wiphy *wiphy, struct net_device *dev
 {
 	moal_private *priv = (moal_private *)woal_get_netdev_priv(dev);
 	ENTER();
-	PRINTM(MMSG, "wlan: sched scan stop\n");
+	PRINTM(MINFO, "wlan: sched scan stop\n");
 	priv->sched_scanning = MFALSE;
 	woal_stop_bg_scan(priv, MOAL_NO_WAIT);
 	priv->bg_scan_start = MFALSE;
