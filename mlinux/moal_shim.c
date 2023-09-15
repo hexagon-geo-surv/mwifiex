@@ -1311,11 +1311,16 @@ mlan_status moal_ioctl_complete(t_void *pmoal, pmlan_ioctl_req pioctl_req,
 		return MLAN_STATUS_SUCCESS;
 	}
 
-	if (status != MLAN_STATUS_SUCCESS && status != MLAN_STATUS_COMPLETE)
+	if (status != MLAN_STATUS_SUCCESS && status != MLAN_STATUS_COMPLETE) {
 		if (handle->rf_test_mode == MTRUE)
 			PRINTM(MERROR,
 			       "Operation id=0x%x not allowed in rf-mode\n",
 			       pioctl_req->req_id);
+		else if (pioctl_req->status_code == MLAN_ERROR_CMD_CANCEL)
+			PRINTM(MIOCTL,
+			       "IOCTL canceled: %p id=0x%x, sub_id=0x%x action=%d",
+			       pioctl_req, pioctl_req->req_id,
+			       (*(t_u32 *)pioctl_req->pbuf), (int)pioctl_req->action);
 		else
 			PRINTM(MERROR,
 			       "IOCTL failed: %p id=0x%x, sub_id=0x%x action=%d, status_code=0x%x [%s]\n",
@@ -1324,7 +1329,7 @@ mlan_status moal_ioctl_complete(t_void *pmoal, pmlan_ioctl_req pioctl_req,
 			       (int)pioctl_req->action, pioctl_req->status_code,
 			       wlan_errorcode_get_name(
 				       pioctl_req->status_code));
-	else
+	} else
 		PRINTM(MIOCTL,
 		       "IOCTL completed: %p id=0x%x sub_id=0x%x, action=%d,  status=%d, status_code=0x%x\n",
 		       pioctl_req, pioctl_req->req_id,
