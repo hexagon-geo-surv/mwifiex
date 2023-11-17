@@ -75,6 +75,10 @@ Change log:
 #endif
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
+#include <net/netdev_rx_queue.h>
+#endif
+
 /********************************************************
 		 Global Variables
  ********************************************************/
