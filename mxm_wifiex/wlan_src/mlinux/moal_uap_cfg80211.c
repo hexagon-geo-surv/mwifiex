@@ -2904,6 +2904,12 @@ done:
 	return ret;
 }
 
+int woal_cfg80211_ops_set_beacon(struct wiphy *wiphy, struct net_device *dev,
+				 struct cfg80211_ap_update *params)
+{
+	return woal_cfg80211_set_beacon(wiphy, dev, &params->beacon);
+}
+
 /**
  * @brief reset AP or GO parameters
  *
