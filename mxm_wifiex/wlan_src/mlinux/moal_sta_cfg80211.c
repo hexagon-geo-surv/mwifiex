@@ -376,7 +376,11 @@ static struct cfg80211_ops woal_cfg80211_ops = {
 #endif
 	.add_virtual_intf = woal_cfg80211_add_virtual_intf,
 	.del_virtual_intf = woal_cfg80211_del_virtual_intf,
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
+	.start_ap = woal_cfg80211_add_beacon,
+	.change_beacon = woal_cfg80211_ops_set_beacon,
+	.stop_ap = woal_cfg80211_del_beacon,
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)
 	.start_ap = woal_cfg80211_add_beacon,
 	.change_beacon = woal_cfg80211_set_beacon,
 	.stop_ap = woal_cfg80211_del_beacon,
