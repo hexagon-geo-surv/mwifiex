@@ -2652,6 +2652,18 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 							assoc_info
 								->assoc_req_buf;
 
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
+					resp.links[0].bss = bss;
+					resp.buf = assoc_info->assoc_resp_buf;
+					resp.len = assoc_info->assoc_resp_len;
+					resp.req_ies = assoc_req_buf;
+					resp.req_ies_len =
+						assoc_info->assoc_req_len;
+					wiphy_lock(priv->wdev->wiphy);
+					cfg80211_rx_assoc_resp(priv->netdev,
+							       &resp);
+					wiphy_unlock(priv->wdev->wiphy);
+#else
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 					resp.links[0].bss = bss;
 					resp.buf = assoc_info->assoc_resp_buf;
@@ -2694,6 +2706,7 @@ void woal_host_mlme_process_assoc_resp(moal_private *priv,
 						priv->netdev, bss,
 						assoc_info->assoc_resp_buf,
 						assoc_info->assoc_resp_len);
+#endif
 #endif
 #endif
 #endif
@@ -9701,7 +9714,11 @@ void woal_host_mlme_disconnect(moal_private *priv, u16 reason_code, u8 *sa)
 	}
 
 	if (GET_BSS_ROLE(priv) != MLAN_BSS_ROLE_UAP) {
-#if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
+		wiphy_lock(priv->wdev->wiphy);
+		cfg80211_rx_mlme_mgmt(priv->netdev, frame_buf, 26);
+		wiphy_unlock(priv->wdev->wiphy);
+#elif CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
 		mutex_lock(&priv->wdev->mtx);
 		cfg80211_rx_mlme_mgmt(priv->netdev, frame_buf, 26);
 		mutex_unlock(&priv->wdev->mtx);
