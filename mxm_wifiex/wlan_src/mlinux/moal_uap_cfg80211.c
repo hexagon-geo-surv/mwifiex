@@ -2904,11 +2904,13 @@ done:
 	return ret;
 }
 
+#if KERNEL_VERSION(6, 7, 0) <= CFG80211_VERSION_CODE
 int woal_cfg80211_ops_set_beacon(struct wiphy *wiphy, struct net_device *dev,
 				 struct cfg80211_ap_update *params)
 {
 	return woal_cfg80211_set_beacon(wiphy, dev, &params->beacon);
 }
+#endif
 
 /**
  * @brief reset AP or GO parameters
