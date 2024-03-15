@@ -3310,6 +3310,7 @@ done:
 #endif /* STA_SUPPORT && UAP_SUPPORT */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 1, 0)
+#if IS_ENABLED(CONFIG_IPV6)
 /**
  *  @brief Enable IPv6 Router Advertisement offload
  *
@@ -3377,6 +3378,7 @@ done:
 	LEAVE();
 	return ret;
 }
+#endif
 #endif
 
 static mlan_status woal_set_wake_on_mdns(moal_handle *handle, t_u8 enable)
@@ -3467,6 +3469,7 @@ done:
 #define IPV6_HEADER_TYPE "\x86\xdd"
 #define TYPE_NS "\x87"
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 1, 0)
+#if IS_ENABLED(CONFIG_IPV6)
 /**
  *  @brief Enable IPv6 Neighbor Solicitation offload
  *
@@ -3553,6 +3556,7 @@ done:
 	LEAVE();
 	return ret;
 }
+#endif
 #endif
 
 /**
