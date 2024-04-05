@@ -2011,14 +2011,13 @@ out:
 /**
  *  @brief This function read the initial parameter from device tress
  *
- *  @param handle   A pointer to moal_handle structure
+ *  @param pdev   A pointer to the platform device
  *
  *  @return         N/A
  */
-void woal_init_from_dev_tree(void)
+void woal_init_from_dev_tree(struct platform_device *pdev)
 {
-	struct device_node *dt_node = NULL;
-	struct property *prop;
+	struct device_node *dt_node = pdev->dev.of_node;
 	t_u32 data;
 	const char *string_data;
 
@@ -2026,434 +2025,276 @@ void woal_init_from_dev_tree(void)
 
 	if (!dts_enable) {
 		PRINTM(MIOCTL, "DTS is disabled!");
-		return;
-	}
-
-	dt_node = of_find_node_by_name(NULL, "sdxxx-wlan");
-	if (!dt_node) {
 		LEAVE();
 		return;
 	}
-	for_each_property_of_node (dt_node, prop) {
-		if (!strncmp(prop->name, "drv_mode", strlen("drv_mode"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "drv_mode=0x%x\n", data);
-				drv_mode = data;
-			}
-		}
+
+	if (!of_property_read_u32(dt_node, "drv_mode", &data)) {
+		PRINTM(MIOCTL, "drv_mode=0x%x\n", data);
+		drv_mode = data;
+	}
 #ifdef DEBUG_LEVEL1
-		else if (!strncmp(prop->name, "drvdbg", strlen("drvdbg"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "drvdbg=0x%x\n", data);
-				drvdbg = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "drvdbg", &data)) {
+		PRINTM(MIOCTL, "drvdbg=0x%x\n", data);
+		drvdbg = data;
+	}
 #endif
-		else if (!strncmp(prop->name, "dev_cap_mask",
-				  strlen("dev_cap_mask"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "dev_cap_mask=0x%x\n", data);
-				dev_cap_mask = data;
-			}
-		} else if (!strncmp(prop->name, "hw_test", strlen("hw_test"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "hw_test=0x%x\n", data);
-				hw_test = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "dev_cap_mask", &data)) {
+		PRINTM(MIOCTL, "dev_cap_mask=0x%x\n", data);
+		dev_cap_mask = data;
+	}
+	if (!of_property_read_u32(dt_node, "hw_test", &data)) {
+		PRINTM(MIOCTL, "hw_test=0x%x\n", data);
+		hw_test = data;
+	}
 #if defined(SDIO)
-		else if (!strncmp(prop->name, "slew_rate",
-				  strlen("slew_rate"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "slew_rate=0x%x\n", data);
-				slew_rate = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "slew_rate", &data)) {
+		PRINTM(MIOCTL, "slew_rate=0x%x\n", data);
+		slew_rate = data;
+	}
 #endif
-		else if (!strncmp(prop->name, "tx_work", strlen("tx_work"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "tx_work=0x%x\n", data);
-				tx_work = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "tx_work", &data)) {
+		PRINTM(MIOCTL, "tx_work=0x%x\n", data);
+		tx_work = data;
+	}
 #if defined(CONFIG_RPS)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0)
-		else if (!strncmp(prop->name, "rps", strlen("rps"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "rps=0x%x\n", data);
-				rps = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "rps", &data)) {
+		PRINTM(MIOCTL, "rps=0x%x\n", data);
+		rps = data;
+	}
 #endif
 #endif
-		else if (!strncmp(prop->name, "edmac_ctrl",
-				  strlen("edmac_ctrl"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "edmac_ctrl=0x%x\n", data);
-				edmac_ctrl = data;
-			}
-		} else if (!strncmp(prop->name, "tx_skb_clone",
-				    strlen("tx_skb_clone"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "tx_skb_clone=0x%x\n", data);
-				tx_skb_clone = data;
-			}
-		} else if (!strncmp(prop->name, "pmqos", strlen("pmqos"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "pmqos=0x%x\n", data);
-				pmqos = data;
-			}
-		} else if (!strncmp(prop->name, "mcs32", strlen("mcs32"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "mcs32=0x%x\n", data);
-				mcs32 = data;
-			}
-		}
-
-		else if (!strncmp(prop->name, "hs_auto_arp",
-				  strlen("hs_auto_arp"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "hs_auto_arp=0x%x\n", data);
-				hs_auto_arp = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "edmac_ctrl", &data)) {
+		PRINTM(MIOCTL, "edmac_ctrl=0x%x\n", data);
+		edmac_ctrl = data;
+	}
+	if (!of_property_read_u32(dt_node, "tx_skb_clone", &data)) {
+		PRINTM(MIOCTL, "tx_skb_clone=0x%x\n", data);
+		tx_skb_clone = data;
+	}
+	if (!of_property_read_u32(dt_node, "pmqos", &data)) {
+		PRINTM(MIOCTL, "pmqos=0x%x\n", data);
+		pmqos = data;
+	}
+	if (!of_property_read_u32(dt_node, "mcs32", &data)) {
+		PRINTM(MIOCTL, "mcs32=0x%x\n", data);
+		mcs32 = data;
+	}
+	if (!of_property_read_u32(dt_node, "hs_auto_arp", &data)) {
+		PRINTM(MIOCTL, "hs_auto_arp=0x%x\n", data);
+		hs_auto_arp = data;
+	}
 #ifdef MFG_CMD_SUPPORT
-		else if (!strncmp(prop->name, "mfg_mode", strlen("mfg_mode"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "mfg_mode=0x%x\n", data);
-				mfg_mode = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "mfg_mode", &data)) {
+		PRINTM(MIOCTL, "mfg_mode=0x%x\n", data);
+		mfg_mode = data;
+	}
 #endif
-		else if (!strncmp(prop->name, "rf_test_mode",
-				  strlen("rf_test_mode"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "rf_test_mode=0x%x\n", data);
-				rf_test_mode = data;
-			}
-		} else if (!strncmp(prop->name, "mac_addr",
-				    strlen("mac_addr"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				mac_addr = (char *)string_data;
-				PRINTM(MIOCTL, "mac_addr=%s\n", mac_addr);
-			}
-		} else if (!strncmp(prop->name, "fw_name", strlen("fw_name"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				fw_name = (char *)string_data;
-				PRINTM(MIOCTL, "fw_name=%s\n", fw_name);
-			}
-		} else if (!strncmp(prop->name, "hw_name", strlen("hw_name"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				hw_name = (char *)string_data;
-				PRINTM(MIOCTL, "hw_name=%s\n", hw_name);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "rf_test_mode", &data)) {
+		PRINTM(MIOCTL, "rf_test_mode=0x%x\n", data);
+		rf_test_mode = data;
+	}
+	if (!of_property_read_string(dt_node, "mac_addr", &string_data)) {
+		mac_addr = (char *)string_data;
+		PRINTM(MIOCTL, "mac_addr=%s\n", mac_addr);
+	}
+	if (!of_property_read_string(dt_node, "fw_name", &string_data)) {
+		fw_name = (char *)string_data;
+		PRINTM(MIOCTL, "fw_name=%s\n", fw_name);
+	}
+	if (!of_property_read_string(dt_node, "hw_name", &string_data)) {
+		hw_name = (char *)string_data;
+		PRINTM(MIOCTL, "hw_name=%s\n", hw_name);
+	}
 #if defined(STA_WEXT) || defined(UAP_WEXT)
-		else if (!strncmp(prop->name, "cfg80211_wext",
-				  strlen("cfg80211_wext"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "cfg80211_wext=0x%x\n", data);
-				cfg80211_wext = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "cfg80211_wext", &data)) {
+		PRINTM(MIOCTL, "cfg80211_wext=0x%x\n", data);
+		cfg80211_wext = data;
+	}
 #endif
 #ifdef STA_SUPPORT
-		else if (!strncmp(prop->name, "sta_name", strlen("sta_name"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				sta_name = (char *)string_data;
-				PRINTM(MIOCTL, "sta_name=%s\n", sta_name);
-			}
-		}
+	if (!of_property_read_string(dt_node, "sta_name", &string_data)) {
+		sta_name = (char *)string_data;
+		PRINTM(MIOCTL, "sta_name=%s\n", sta_name);
+	}
 #endif
 #ifdef WIFI_DIRECT_SUPPORT
-		else if (!strncmp(prop->name, "wfd_name", strlen("wfd_name"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				wfd_name = (char *)string_data;
-				PRINTM(MIOCTL, "wfd_name=%s\n", wfd_name);
-			}
-		}
+	if (!of_property_read_string(dt_node, "wfd_name", &string_data)) {
+		wfd_name = (char *)string_data;
+		PRINTM(MIOCTL, "wfd_name=%s\n", wfd_name);
+	}
 #endif
 #if defined(STA_CFG80211) || defined(UAP_CFG80211)
-		else if (!strncmp(prop->name, "disable_regd_by_driver",
-				  strlen("disable_regd_by_driver"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "disable_regd_by_driver=0x%x\n",
-				       data);
-				disable_regd_by_driver = data;
-			}
-		} else if (!strncmp(prop->name, "reg_alpha2",
-				    strlen("reg_alpha2"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				reg_alpha2 = (char *)string_data;
-				PRINTM(MIOCTL, "reg_alpha2=%s\n", reg_alpha2);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "disable_regd_by_driver", &data)) {
+		PRINTM(MIOCTL, "disable_regd_by_driver=0x%x\n", data);
+		disable_regd_by_driver = data;
+	}
+	if (!of_property_read_string(dt_node, "reg_alpha2", &string_data)) {
+		reg_alpha2 = (char *)string_data;
+		PRINTM(MIOCTL, "reg_alpha2=%s\n", reg_alpha2);
+	}
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
-		else if (!strncmp(prop->name, "country_ie_ignore",
-				  strlen("country_ie_ignore"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "country_ie_ignore=0x%x\n",
-				       data);
-				country_ie_ignore = data;
-			}
-		} else if (!strncmp(prop->name, "beacon_hints",
-				    strlen("beacon_hints"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "beacon_hints=0x%x\n", data);
-				beacon_hints = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "country_ie_ignore", &data)) {
+		PRINTM(MIOCTL, "country_ie_ignore=0x%x\n", data);
+		country_ie_ignore = data;
+	}
+	if (!of_property_read_u32(dt_node, "beacon_hints", &data)) {
+		PRINTM(MIOCTL, "beacon_hints=0x%x\n", data);
+		beacon_hints = data;
+	}
 #endif
 #endif
 #ifdef WIFI_DIRECT_SUPPORT
 #if defined(STA_CFG80211) && defined(UAP_CFG80211)
-		else if (!strncmp(prop->name, "max_vir_bss",
-				  strlen("max_vir_bss"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "max_vir_bss=0x%x\n", data);
-				max_vir_bss = data;
-			}
-		} else if (!strncmp(prop->name, "cfg80211_drcs",
-				    strlen("cfg80211_drcs"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "cfg80211_drcs=0x%x\n", data);
-				cfg80211_drcs = data;
-			}
-		} else if (!strncmp(prop->name, "dmcs", strlen("dmcs"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "dmcs=0x%x\n", data);
-				dmcs = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "max_vir_bss", &data)) {
+		PRINTM(MIOCTL, "max_vir_bss=0x%x\n", data);
+		max_vir_bss = data;
+	}
+	if (!of_property_read_u32(dt_node, "cfg80211_drcs", &data)) {
+		PRINTM(MIOCTL, "cfg80211_drcs=0x%x\n", data);
+		cfg80211_drcs = data;
+	}
+	if (!of_property_read_u32(dt_node, "dmcs", &data)) {
+		PRINTM(MIOCTL, "dmcs=0x%x\n", data);
+		dmcs = data;
+	}
 #endif
 #endif
-		else if (!strncmp(prop->name, "dpd_data_cfg",
-				  strlen("dpd_data_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				dpd_data_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "dpd_data_cfg=%s\n",
-				       dpd_data_cfg);
-			}
-		} else if (!strncmp(prop->name, "init_cfg",
-				    strlen("init_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				init_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "init_cfg=%s\n", init_cfg);
-			}
-		} else if (!strncmp(prop->name, "cal_data_cfg",
-				    strlen("cal_data_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				cal_data_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "cal_data_cfg=%s\n",
-				       cal_data_cfg);
-			}
-		} else if (!strncmp(prop->name, "txpwrlimit_cfg",
-				    strlen("txpwrlimit_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				txpwrlimit_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "txpwrlimit_cfg=%s\n",
-				       txpwrlimit_cfg);
-			}
-		} else if (!strncmp(prop->name, "cntry_txpwr",
-				    strlen("cntry_txpwr"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				cntry_txpwr = data;
-				PRINTM(MIOCTL, "cntry_txpwr=%d\n", cntry_txpwr);
-			}
-		} else if (!strncmp(prop->name, "init_hostcmd_cfg",
-				    strlen("init_hostcmd_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				init_hostcmd_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "init_hostcmd_cfg=%s\n",
-				       init_hostcmd_cfg);
-			}
-		} else if (!strncmp(prop->name, "band_steer_cfg",
-				    strlen("band_steer_cfg"))) {
-			if (!of_property_read_string(dt_node, prop->name,
-						     &string_data)) {
-				band_steer_cfg = (char *)string_data;
-				PRINTM(MIOCTL, "band_steer_cfg=%s\n",
-				       band_steer_cfg);
-			}
-		} else if (!strncmp(prop->name, "pmic", strlen("pmic"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				pmic = data;
-				PRINTM(MIOCTL, "pmic=%d\n", pmic);
-			}
-		} else if (!strncmp(prop->name, "antcfg", strlen("antcfg"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				antcfg = data;
-				PRINTM(MIOCTL, "antcfg=%d\n", antcfg);
-			}
-		} else if (!strncmp(prop->name, "hs_wake_interval",
-				    strlen("hs_wake_interval"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				hs_wake_interval = data;
-				PRINTM(MIOCTL, "hs_wake_interval=%d\n",
-				       hs_wake_interval);
-			}
-		} else if (!strncmp(prop->name, "indication_gpio",
-				    strlen("indication_gpio"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				indication_gpio = (t_u8)data;
-				PRINTM(MIOCTL, "indication_gpio=%d\n",
-				       indication_gpio);
-			}
-		} else if (!strncmp(prop->name, "hs_mimo_switch",
-				    strlen("hs_mimo_switch"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				hs_mimo_switch = data;
-				PRINTM(MIOCTL, "hs_mimo_switch=%d\n",
-				       hs_mimo_switch);
-			}
-		}
+	if (!of_property_read_string(dt_node, "dpd_data_cfg", &string_data)) {
+		dpd_data_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "dpd_data_cfg=%s\n", dpd_data_cfg);
+	}
+	if (!of_property_read_string(dt_node, "init_cfg", &string_data)) {
+		init_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "init_cfg=%s\n", init_cfg);
+	}
+	if (!of_property_read_string(dt_node, "cal_data_cfg", &string_data)) {
+		cal_data_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "cal_data_cfg=%s\n", cal_data_cfg);
+	}
+	if (!of_property_read_string(dt_node, "txpwrlimit_cfg", &string_data)) {
+		txpwrlimit_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "txpwrlimit_cfg=%s\n", txpwrlimit_cfg);
+	}
+	if (!of_property_read_u32(dt_node, "cntry_txpwr", &data)) {
+		cntry_txpwr = data;
+		PRINTM(MIOCTL, "cntry_txpwr=%d\n", cntry_txpwr);
+	}
+	if (!of_property_read_string(dt_node, "init_hostcmd_cfg", &string_data)) {
+		init_hostcmd_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "init_hostcmd_cfg=%s\n", init_hostcmd_cfg);
+	}
+	if (!of_property_read_string(dt_node, "band_steer_cfg", &string_data)) {
+		band_steer_cfg = (char *)string_data;
+		PRINTM(MIOCTL, "band_steer_cfg=%s\n", band_steer_cfg);
+	}
+	if (!of_property_read_u32(dt_node, "pmic", &data)) {
+		pmic = data;
+		PRINTM(MIOCTL, "pmic=%d\n", pmic);
+	}
+	if (!of_property_read_u32(dt_node, "antcfg", &data)) {
+		antcfg = data;
+		PRINTM(MIOCTL, "antcfg=%d\n", antcfg);
+	}
+	if (!of_property_read_u32(dt_node, "hs_wake_interval", &data)) {
+		hs_wake_interval = data;
+		PRINTM(MIOCTL, "hs_wake_interval=%d\n", hs_wake_interval);
+	}
+	if (!of_property_read_u32(dt_node, "indication_gpio", &data)) {
+		indication_gpio = (t_u8)data;
+		PRINTM(MIOCTL, "indication_gpio=%d\n", indication_gpio);
+	}
+	if (!of_property_read_u32(dt_node, "hs_mimo_switch", &data)) {
+		hs_mimo_switch = data;
+		PRINTM(MIOCTL, "hs_mimo_switch=%d\n", hs_mimo_switch);
+	}
 #ifdef WIFI_DIRECT_SUPPORT
-		else if (!strncmp(prop->name, "GoAgeoutTime",
-				  strlen("GoAgeoutTime"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				GoAgeoutTime = data;
-				PRINTM(MIOCTL, "GoAgeoutTime=%d\n",
-				       GoAgeoutTime);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "GoAgeoutTime", &data)) {
+		GoAgeoutTime = data;
+		PRINTM(MIOCTL, "GoAgeoutTime=%d\n", GoAgeoutTime);
+	}
 #endif
-		else if (!strncmp(prop->name, "indrstcfg",
-				  strlen("indrstcfg"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				indrstcfg = data;
-				PRINTM(MIOCTL, "indrstcfg=%d\n", indrstcfg);
-			}
-		} else if (!strncmp(prop->name, "drcs_chantime_mode",
-				    strlen("drcs_chantime_mode"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				drcs_chantime_mode = data;
-				PRINTM(MIOCTL, "drcs_chantime_mode=%d\n",
-				       drcs_chantime_mode);
-			}
-		} else if (!strncmp(prop->name, "fixed_beacon_buffer",
-				    strlen("fixed_beacon_buffer"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				fixed_beacon_buffer = data;
-				PRINTM(MIOCTL, "fixed_beacon_buffer=%d\n",
-				       fixed_beacon_buffer);
-			}
-		} else if (!strncmp(prop->name, "multi_dtim",
-				    strlen("multi_dtim"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				multi_dtim = data;
-				PRINTM(MIOCTL, "multi_dtim=%d\n", multi_dtim);
-			}
-		} else if (!strncmp(prop->name, "inact_tmo",
-				    strlen("inact_tmo"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				inact_tmo = data;
-				PRINTM(MIOCTL, "inact_tmo=%d\n", inact_tmo);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "indrstcfg", &data)) {
+		indrstcfg = data;
+		PRINTM(MIOCTL, "indrstcfg=%d\n", indrstcfg);
+	}
+	if (!of_property_read_u32(dt_node, "drcs_chantime_mode", &data)) {
+		drcs_chantime_mode = data;
+		PRINTM(MIOCTL, "drcs_chantime_mode=%d\n", drcs_chantime_mode);
+	}
+	if (!of_property_read_u32(dt_node, "fixed_beacon_buffer", &data)) {
+		fixed_beacon_buffer = data;
+		PRINTM(MIOCTL, "fixed_beacon_buffer=%d\n", fixed_beacon_buffer);
+	}
+	if (!of_property_read_u32(dt_node, "multi_dtim", &data)) {
+		multi_dtim = data;
+		PRINTM(MIOCTL, "multi_dtim=%d\n", multi_dtim);
+	}
+	if (!of_property_read_u32(dt_node, "inact_tmo", &data)) {
+		inact_tmo = data;
+		PRINTM(MIOCTL, "inact_tmo=%d\n", inact_tmo);
+	}
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
-		else if (!strncmp(prop->name, "dfs_offload",
-				  strlen("dfs_offload"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				dfs_offload = data;
-				PRINTM(MIOCTL, "dfs_offload=%d\n", dfs_offload);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "dfs_offload", &data)) {
+		dfs_offload = data;
+		PRINTM(MIOCTL, "dfs_offload=%d\n", dfs_offload);
+	}
 #endif
-		else if (!strncmp(prop->name, "roamoffload_in_hs",
-				  strlen("roamoffload_in_hs"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				roamoffload_in_hs = data;
-				PRINTM(MIOCTL, "roamoffload_in_hs=%d\n",
-				       roamoffload_in_hs);
-			}
-		} else if (!strncmp(prop->name, "gtk_rekey_offload",
-				    strlen("gtk_rekey_offload"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				gtk_rekey_offload = data;
-				PRINTM(MIOCTL, "gtk_rekey_offload=%d\n",
-				       gtk_rekey_offload);
-			}
-		}
+	if (!of_property_read_u32(dt_node, "roamoffload_in_hs", &data)) {
+		roamoffload_in_hs = data;
+		PRINTM(MIOCTL, "roamoffload_in_hs=%d\n", roamoffload_in_hs);
+	}
+	if (!of_property_read_u32(dt_node, "gtk_rekey_offload", &data)) {
+		gtk_rekey_offload = data;
+		PRINTM(MIOCTL, "gtk_rekey_offload=%d\n", gtk_rekey_offload);
+	}
 #if defined(STA_CFG80211) || defined(UAP_CFG80211)
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
-		else if (!strncmp(prop->name, "host_mlme",
-				  strlen("host_mlme"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "host_mlme=0x%x\n", data);
-				host_mlme = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "host_mlme", &data)) {
+		PRINTM(MIOCTL, "host_mlme=0x%x\n", data);
+		host_mlme = data;
+	}
 #endif
 #endif
 #ifdef UAP_SUPPORT
-		else if (!strncmp(prop->name, "uap_max_sta",
-				  strlen("uap_max_sta"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "uap_max_sta=0x%x\n", data);
-				uap_max_sta = data;
-			}
-		} else if (!strncmp(prop->name, "wacp_mode",
-				    strlen("wacp_mode"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "wacp_mode=0x%x\n", data);
-				wacp_mode = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "uap_max_sta", &data)) {
+		PRINTM(MERROR, "uap_max_sta=0x%x\n", data);
+		uap_max_sta = data;
+	}
+	if (!of_property_read_u32(dt_node, "wacp_mode", &data)) {
+		PRINTM(MERROR, "wacp_mode=0x%x\n", data);
+		wacp_mode = data;
+	}
 #endif
-		else if (!strncmp(prop->name, "mcs32", strlen("mcs32"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "mcs32=0x%x\n", data);
-				mcs32 = data;
-			}
-		} else if (!strncmp(prop->name, "sched_scan",
-				    strlen("sched_scan"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MIOCTL, "sched_scan=%d\n", data);
-				sched_scan = data;
-			}
-		} else if (!strncmp(prop->name, "chan_track",
-				    strlen("chan_track"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				chan_track = data;
-				PRINTM(MIOCTL, "chan_track=%d\n", chan_track);
-			}
-		} else if (!strncmp(prop->name, "keep_previous_scan",
-				    strlen("keep_previous_scan"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "keep_previous_scan=0x%x\n",
-				       data);
-				keep_previous_scan = data;
-			}
-		} else if (!strncmp(prop->name, "auto_11ax",
-				    strlen("auto_11ax"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "auto_11ax=0x%x\n", data);
-				auto_11ax = data;
-			}
-		}
+	if (!of_property_read_u32(dt_node, "mcs32", &data)) {
+		PRINTM(MERROR, "mcs32=0x%x\n", data);
+		mcs32 = data;
+	}
+	if (!of_property_read_u32(dt_node, "sched_scan", &data)) {
+		PRINTM(MIOCTL, "sched_scan=%d\n", data);
+		sched_scan = data;
+	}
+	if (!of_property_read_u32(dt_node, "chan_track", &data)) {
+		chan_track = data;
+		PRINTM(MIOCTL, "chan_track=%d\n", chan_track);
+	}
+	if (!of_property_read_u32(dt_node, "keep_previous_scan", &data)) {
+		PRINTM(MERROR, "keep_previous_scan=0x%x\n", data);
+		keep_previous_scan = data;
+	}
+	if (!of_property_read_u32(dt_node, "auto_11ax", &data)) {
+		PRINTM(MERROR, "auto_11ax=0x%x\n", data);
+		auto_11ax = data;
+	}
 #if defined(STA_CFG80211) || defined(UAP_CFG80211)
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
-		else if (!strncmp(prop->name, "mon_filter",
-				  strlen("mon_filter"))) {
-			if (!of_property_read_u32(dt_node, prop->name, &data)) {
-				PRINTM(MERROR, "mon_filter=0x%x\n", data);
-				mon_filter = data;
-			}
-		}
-#endif
-#endif
+	if (!of_property_read_u32(dt_node, "mon_filter", &data)) {
+		PRINTM(MERROR, "mon_filter=0x%x\n", data);
+		mon_filter = data;
 	}
+#endif
+#endif
 	LEAVE();
 	return;
 }

@@ -106,6 +106,8 @@ Change log:
 #include <linux/inetdevice.h>
 
 #include <linux/firmware.h>
+#include <linux/platform_device.h>
+#include <linux/mod_devicetable.h>
 
 #ifdef ANDROID_KERNEL
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
@@ -3674,8 +3676,10 @@ moal_private *woal_bss_index_to_priv(moal_handle *handle, t_u32 bss_index);
 mlan_status woal_init_module_param(moal_handle *handle);
 /** free module parameters */
 void woal_free_module_param(moal_handle *handle);
+#ifdef CONFIG_OF
 /** init module parameters from device tree */
-void woal_init_from_dev_tree(void);
+void woal_init_from_dev_tree(struct platform_device *pdev);
+#endif
 /** initializes software */
 mlan_status woal_init_sw(moal_handle *handle);
 /** update the default firmware name */

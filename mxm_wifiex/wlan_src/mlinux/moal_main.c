@@ -13439,19 +13439,14 @@ static void woal_bus_unregister(void)
 #endif
 }
 
-/**
- *  @brief This function initializes module.
- *
- *  @return        MLAN_STATUS_SUCCESS or MLAN_STATUS_FAILURE
- */
-static int woal_init_module(void)
+static int woal_init_and_register_bus(void)
 {
 	int ret = (int)MLAN_STATUS_SUCCESS;
 	int index = 0;
 
 	ENTER();
-
 	PRINTM(MMSG, "wlan: Loading MWLAN driver\n");
+
 	/* Init the wlan_private pointer array first */
 	for (index = 0; index < MAX_MLAN_ADAPTER; index++)
 		m_handle[index] = NULL;
@@ -13464,10 +13459,6 @@ static int woal_init_module(void)
 		LEAVE();
 		return -EFAULT;
 	}
-
-#ifdef CONFIG_OF
-	woal_init_from_dev_tree();
-#endif
 
 	/* Create workqueue for hang process */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 14)
@@ -13512,12 +13503,7 @@ static int woal_init_module(void)
 	return ret;
 }
 
-/**
- *  @brief This function cleans module
- *
- *  @return        N/A
- */
-static void woal_cleanup_module(void)
+static void woal_cleanup_and_unregister_bus(void)
 {
 	moal_handle *handle = NULL;
 	int index = 0;
@@ -13525,7 +13511,6 @@ static void woal_cleanup_module(void)
 #if defined(STA_SUPPORT) && defined(STA_CFG80211)
 	unsigned long flags;
 #endif
-
 	ENTER();
 
 	PRINTM(MMSG, "wlan: Unloading MWLAN driver\n");
@@ -13724,8 +13709,70 @@ exit_sem_err:
 	}
 
 	woal_root_proc_remove();
-
 	LEAVE();
+}
+
+#ifdef CONFIG_OF
+static int sdxxx_wlan_probe(struct platform_device *pdev)
+{
+	int ret;
+
+	woal_init_from_dev_tree(pdev);
+	ret = woal_init_and_register_bus();
+	return ret;
+}
+
+static void sdxxx_wlan_remove(struct platform_device *pdev)
+{
+	woal_cleanup_and_unregister_bus();
+	return;
+}
+
+static const struct of_device_id sdxxx_wlan_of_match[] = {
+	{ .compatible = "nxp,sdxxx-wlan" },
+	{ /* sentinel */ }
+};
+
+static struct platform_driver sdxxx_wlan_driver = {
+	.probe = sdxxx_wlan_probe,
+	.remove_new = sdxxx_wlan_remove,
+	.driver = {
+		.name = "nxp-sdxxx-wlan",
+		.of_match_table = sdxxx_wlan_of_match,
+	}
+};
+#endif
+
+/**
+ *  @brief This function initializes module.
+ *
+ *  @return        MLAN_STATUS_SUCCESS or MLAN_STATUS_FAILURE
+ */
+static int woal_init_module(void)
+{
+	int ret = MLAN_STATUS_SUCCESS;
+
+#ifdef CONFIG_OF
+	ret = platform_driver_register(&sdxxx_wlan_driver);
+#else
+	ret = woal_init_and_register_bus();
+#endif
+	return ret;
+}
+
+/**
+ *  @brief This function cleans module
+ *
+ *  @return        N/A
+ */
+static void woal_cleanup_module(void)
+{
+#ifdef CONFIG_OF
+	platform_driver_unregister(&sdxxx_wlan_driver);
+#else
+	woal_cleanup_and_unregister_bus();
+#endif
+	return;
 }
 
 #ifndef MODULE
