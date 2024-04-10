@@ -108,6 +108,10 @@ Change log:
 #include <linux/firmware.h>
 #include <linux/platform_device.h>
 #include <linux/mod_devicetable.h>
+#include <linux/gpio/consumer.h>
+#include <linux/regulator/consumer.h>
+#include <linux/err.h>
+#include <linux/reset.h>
 
 #ifdef ANDROID_KERNEL
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
@@ -2528,6 +2532,12 @@ typedef struct _moal_mod_para {
 	int hs_auto_arp;
 	/** Dual-BT **/
 	int dual_nb;
+#ifdef CONFIG_OF
+	int vcc_on_delay_us;
+	struct reset_control *pdn_reset;
+	struct gpio_desc *wl_rst_gpio;
+	struct regulator *vcc_supply;
+#endif
 } moal_mod_para;
 
 void woal_tp_acnt_timer_func(void *context);
@@ -3679,6 +3689,8 @@ void woal_free_module_param(moal_handle *handle);
 #ifdef CONFIG_OF
 /** init module parameters from device tree */
 void woal_init_from_dev_tree(struct platform_device *pdev);
+int woal_powerup_module(void);
+void woal_powerdown_module(void);
 #endif
 /** initializes software */
 mlan_status woal_init_sw(moal_handle *handle);

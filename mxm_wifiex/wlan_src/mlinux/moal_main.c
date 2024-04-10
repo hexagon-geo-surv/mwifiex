@@ -13718,6 +13718,9 @@ static int sdxxx_wlan_probe(struct platform_device *pdev)
 	int ret;
 
 	woal_init_from_dev_tree(pdev);
+	ret = woal_powerup_module();
+	if (ret)
+		return ret;
 	ret = woal_init_and_register_bus();
 	return ret;
 }
@@ -13725,6 +13728,7 @@ static int sdxxx_wlan_probe(struct platform_device *pdev)
 static void sdxxx_wlan_remove(struct platform_device *pdev)
 {
 	woal_cleanup_and_unregister_bus();
+	woal_powerdown_module();
 	return;
 }
 

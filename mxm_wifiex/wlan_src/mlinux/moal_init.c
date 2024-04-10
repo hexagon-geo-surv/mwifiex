@@ -414,6 +414,14 @@ static int dfs53cfg = DFS_W53_DEFAULT_FW;
 
 static int keep_previous_scan = 1;
 static int auto_11ax = 1;
+
+#ifdef CONFIG_OF
+static int vcc_on_delay_us = 0;
+static struct reset_control *pdn_reset = NULL;
+static struct gpio_desc *wl_rst_gpio = NULL;
+static struct regulator *vcc_supply = NULL;
+#endif
+
 /**
  *  @brief This function read a line in module parameter file
  *
@@ -1899,6 +1907,12 @@ static void woal_setup_module_param(moal_handle *handle, moal_mod_para *params)
 	handle->params.dual_nb = dual_nb;
 	if (params)
 		handle->params.dual_nb = params->dual_nb;
+#ifdef CONFIG_OG
+	handle->params.vcc_on_delay_us = vcc_on_delay_us;
+	handle->params.pdn_reset = pdn_reset;
+	handle->params.wl_rst_gpio = wl_rst_gpio;
+	handle->params.vcc_supply = vcc_supply;
+#endif
 }
 
 /**
@@ -2008,6 +2022,30 @@ out:
 }
 
 #ifdef CONFIG_OF
+int woal_powerup_module(void)
+{
+	int ret;
+
+	if (vcc_supply) {
+		ret = regulator_enable(vcc_supply);
+		if (ret)
+			return ret;
+		fsleep(vcc_on_delay_us);
+	}
+	reset_control_deassert(pdn_reset);
+	gpiod_set_value_cansleep(wl_rst_gpio, 0);
+	return 0;
+}
+
+void woal_powerdown_module(void)
+{
+	gpiod_set_value_cansleep(wl_rst_gpio, 1);
+	reset_control_assert(pdn_reset);
+	if (vcc_supply)
+		regulator_disable(vcc_supply);
+	return;
+}
+
 /**
  *  @brief This function read the initial parameter from device tress
  *
@@ -2020,6 +2058,9 @@ void woal_init_from_dev_tree(struct platform_device *pdev)
 	struct device_node *dt_node = pdev->dev.of_node;
 	t_u32 data;
 	const char *string_data;
+	struct gpio_desc *gpiod;
+	struct regulator *supply;
+	struct reset_control *reset;
 
 	ENTER();
 
@@ -2295,6 +2336,26 @@ void woal_init_from_dev_tree(struct platform_device *pdev)
 	}
 #endif
 #endif
+	if (!of_property_read_u32(dt_node, "vcc-on-delay-us", &data)) {
+		PRINTM(MINFO, "vcc-on-delay-us=%d\n", data);
+		vcc_on_delay_us = data;
+	}
+	supply = devm_regulator_get_optional(&pdev->dev, "vcc");
+	if (!IS_ERR(supply)) {
+		PRINTM(MINFO, "vcc-supply=%s\n", supply->supply_name ?: "N/A");
+		vcc_supply = supply;
+	}
+	reset = devm_reset_control_get_optional_shared(&pdev->dev, "pdn");
+	if (!IS_ERR(reset)) {
+		PRINTM(MINFO, "reset=pdn\n");
+		pdn_reset = reset;
+	}
+	gpiod = devm_gpiod_get_optional(&pdev->dev, "wl-rst", GPIOD_OUT_HIGH);
+	if (!IS_ERR(gpiod)) {
+		PRINTM(MINFO, "wl-rst-gpio=%s\n", gpiod->name ?: "N/A");
+		wl_rst_gpio = gpiod;
+	}
+
 	LEAVE();
 	return;
 }
