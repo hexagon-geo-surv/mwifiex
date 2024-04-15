@@ -12169,6 +12169,10 @@ moal_handle *woal_add_card(void *card, struct device *dev, moal_if_ops *if_ops,
 
 	ENTER();
 
+#ifdef CONFIG_OF
+	woal_init_from_dev_tree(dev);
+#endif
+
 	if (MOAL_ACQ_SEMAPHORE_BLOCK(&AddRemoveCardSem))
 		goto exit_sem_err;
 
@@ -13464,10 +13468,6 @@ static int woal_init_module(void)
 		LEAVE();
 		return -EFAULT;
 	}
-
-#ifdef CONFIG_OF
-	woal_init_from_dev_tree();
-#endif
 
 	/* Create workqueue for hang process */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 14)

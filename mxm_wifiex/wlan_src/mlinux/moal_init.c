@@ -2015,9 +2015,9 @@ out:
  *
  *  @return         N/A
  */
-void woal_init_from_dev_tree(void)
+void woal_init_from_dev_tree(struct device *dev)
 {
-	struct device_node *dt_node = NULL;
+	struct device_node *dt_node = dev->of_node;
 	struct property *prop;
 	t_u32 data;
 	const char *string_data;
@@ -2029,8 +2029,7 @@ void woal_init_from_dev_tree(void)
 		return;
 	}
 
-	dt_node = of_find_node_by_name(NULL, "sdxxx-wlan");
-	if (!dt_node) {
+	if (!dt_node || !of_device_is_compatible("nxp,sdxxx-wlan")) {
 		LEAVE();
 		return;
 	}
