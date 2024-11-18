@@ -3711,11 +3711,18 @@ mlan_status moal_recv_event(t_void *pmoal, pmlan_event pmevent)
 					// WARN_ON(!time_after_eq(jiffies,
 					// timeout)); mdelay(100); Using
 					// optimized delay
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
+					timeout =
+						(priv->wdev->links[0].cac_start_time +
+						 msecs_to_jiffies(
+							 priv->wdev->links[0].cac_time_ms));
+#else
 					timeout =
 						(priv->wdev->cac_start_time +
 						 msecs_to_jiffies(
 							 priv->wdev
 								 ->cac_time_ms));
+#endif
 					if (!time_after_eq(jiffies, timeout)) {
 						/* Exact time to make host and
 						 * device timer in sync */
