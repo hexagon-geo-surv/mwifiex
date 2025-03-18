@@ -3096,7 +3096,11 @@ struct _moal_handle {
 #endif
 	mlan_ds_misc_keep_alive keep_alive[MAX_KEEP_ALIVE_ID];
 	mlan_ds_misc_keep_alive_rx keep_alive_rx[MAX_KEEP_ALIVE_RX_ID];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+	struct net_device *napi_dev;
+#else
 	struct net_device napi_dev;
+#endif
 	struct napi_struct napi_rx;
 	/* bus interface operations */
 	moal_if_ops ops;

@@ -12899,6 +12899,13 @@ moal_handle *woal_add_card(void *card, struct device *dev, moal_if_ops *if_ops,
 
 #define NAPI_BUDGET 64
 	if (moal_extflg_isset(handle, EXT_NAPI)) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+		handle->napi_dev = alloc_netdev_dummy(0);
+		if (!handle->napi_dev)
+			goto err_kmalloc;
+		netif_napi_add(handle->napi_dev, &handle->napi_rx,
+                       woal_netdev_poll_rx);
+#else
 		init_dummy_netdev(&handle->napi_dev);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 		netif_napi_add(&handle->napi_dev, &handle->napi_rx,
@@ -12906,6 +12913,7 @@ moal_handle *woal_add_card(void *card, struct device *dev, moal_if_ops *if_ops,
 #else
 		netif_napi_add(&handle->napi_dev, &handle->napi_rx,
 			       woal_netdev_poll_rx, NAPI_BUDGET);
+#endif
 #endif
 		napi_enable(&handle->napi_rx);
 	}
@@ -13021,6 +13029,10 @@ err_kmalloc:
 	woal_free_moal_handle(handle);
 	if (index < MAX_MLAN_ADAPTER)
 		m_handle[index] = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+	if (handle->napi_dev)
+		free_netdev(handle->napi_dev);
+#endif
 err_handle:
 	MOAL_REL_SEMAPHORE(&AddRemoveCardSem);
 exit_sem_err:
