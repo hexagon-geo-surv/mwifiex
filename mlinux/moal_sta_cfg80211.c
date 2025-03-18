@@ -88,6 +88,9 @@ static const u32 cfg80211_akm_suites[] = {
 #ifdef UAP_SUPPORT
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
 static int woal_cfg80211_set_monitor_channel(struct wiphy *wiphy,
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
+					     struct net_device *dev,
+#endif
 					     struct cfg80211_chan_def *chandef);
 #endif
 #endif
@@ -620,6 +623,9 @@ static const struct wiphy_coalesce_support coalesce_support = {
 #ifdef UAP_SUPPORT
 #if CFG80211_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
 static int woal_cfg80211_set_monitor_channel(struct wiphy *wiphy,
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
+					     struct net_device *dev,
+#endif
 					     struct cfg80211_chan_def *chandef)
 {
 	moal_handle *handle = (moal_handle *)woal_get_wiphy_priv(wiphy);
