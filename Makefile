@@ -1,6 +1,6 @@
 #  File: Makefile
 #
-#  Copyright 2008-2024 NXP
+#  Copyright 2008-2025 NXP
 #
 #  This software file (the File) is distributed by NXP
 #  under the terms of the GNU General Public License Version 2, June 1991
@@ -75,6 +75,8 @@ CONFIG_UAP_SUPPORT=y
 # Enable WIFIDIRECT support
 CONFIG_WIFI_DIRECT_SUPPORT=y
 
+# Enable WIFIDISPLAY support
+CONFIG_WIFI_DISPLAY_SUPPORT=y
 
 # Re-association in driver
 CONFIG_REASSOCIATION=y
@@ -105,8 +107,12 @@ CONFIG_MULTI_CHAN_SUPPORT=y
 
 CONFIG_DUMP_TO_PROC=y
 
+CONFIG_FWDUMP_VIA_PRINT=n
+
 CONFIG_TASKLET_SUPPORT=n
 
+# Use coherent buffers for DMA of PCIe device
+CONFIG_COHERENT_BUF=n
 
 
 #32bit app over 64bit kernel support
@@ -175,7 +181,7 @@ APPDIR= $(shell if test -d "mapp"; then echo mapp; fi)
 #############################################################################
 
 	ccflags-y += -I$(KERNELDIR)/include
-	ccflags-y += -DMLAN_RELEASE_VERSION='"537.p9"'
+	ccflags-y += -DMLAN_RELEASE_VERSION='"537.p15"'
 
 	ccflags-y += -DFPNUM='"92"'
 
@@ -200,6 +206,7 @@ ifeq ($(CONFIG_REASSOCIATION),y)
 endif
 else
 CONFIG_WIFI_DIRECT_SUPPORT=n
+CONFIG_WIFI_DISPLAY_SUPPORT=n
 CONFIG_STA_WEXT=n
 CONFIG_STA_CFG80211=n
 endif
@@ -208,12 +215,16 @@ ifeq ($(CONFIG_UAP_SUPPORT),y)
 	ccflags-y += -DUAP_SUPPORT
 else
 CONFIG_WIFI_DIRECT_SUPPORT=n
+CONFIG_WIFI_DISPLAY_SUPPORT=n
 CONFIG_UAP_WEXT=n
 CONFIG_UAP_CFG80211=n
 endif
 
 ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
 	ccflags-y += -DWIFI_DIRECT_SUPPORT
+endif
+ifeq ($(CONFIG_WIFI_DISPLAY_SUPPORT),y)
+	ccflags-y += -DWIFI_DISPLAY_SUPPORT
 endif
 
 ifeq ($(CONFIG_MFG_CMD_SUPPORT),y)
@@ -250,8 +261,15 @@ ifeq ($(CONFIG_DUMP_TO_PROC), y)
 	ccflags-y += -DDUMP_TO_PROC
 endif
 
+ifeq ($(CONFIG_FWDUMP_VIA_PRINT), y)
+	ccflags-y += -DFWDUMP_VIA_PRINT
+endif
+
 ifeq ($(CONFIG_TASKLET_SUPPORT), y)
 	ccflags-y += -DTASKLET_SUPPORT
+endif
+ifeq ($(CONFIG_COHERENT_BUF), y)
+	ccflags-y += -DCOHERENT_BUF
 endif
 
 ifeq ($(CONFIG_OPENWRT_SUPPORT), y)
@@ -308,17 +326,9 @@ ifeq ($(CONFIG_SD9177),y)
 	CONFIG_SDIO=y
 	ccflags-y += -DSD9177
 endif
-ifeq ($(CONFIG_SD8801),y)
-	CONFIG_SDIO=y
-	ccflags-y += -DSD8801
-endif
 ifeq ($(CONFIG_SD9098),y)
 	CONFIG_SDIO=y
 	ccflags-y += -DSD9098
-endif
-ifeq ($(CONFIG_USB8801),y)
-	CONFIG_MUSB=y
-	ccflags-y += -DUSB8801
 endif
 ifeq ($(CONFIG_USB8897),y)
 	CONFIG_MUSB=y
@@ -463,12 +473,14 @@ endif
 
 ifneq ($(CONFIG_STA_SUPPORT),y)
 	CONFIG_WIFI_DIRECT_SUPPORT=n
+	CONFIG_WIFI_DISPLAY_SUPPORT=n
 	CONFIG_STA_WEXT=n
 	CONFIG_STA_CFG80211=n
 endif
 
 ifneq ($(CONFIG_UAP_SUPPORT),y)
 	CONFIG_WIFI_DIRECT_SUPPORT=n
+	CONFIG_WIFI_DISPLAY_SUPPORT=n
 	CONFIG_UAP_WEXT=n
 	CONFIG_UAP_CFG80211=n
 endif

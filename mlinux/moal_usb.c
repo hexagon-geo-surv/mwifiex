@@ -184,6 +184,8 @@ static struct usb_driver REFDATA woal_usb_driver = {
 #endif /* CONFIG_PM */
 };
 
+MODULE_DEVICE_TABLE(usb, woal_usb_table);
+MODULE_DEVICE_TABLE(usb, woal_usb_table_skip_fwdnld);
 
 /* moal interface ops */
 static moal_if_ops usb_ops;
