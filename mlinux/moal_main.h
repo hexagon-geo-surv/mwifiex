@@ -509,7 +509,11 @@ static inline void woal_timer_handler(struct timer_list *t)
 {
 	// Coverity violation raised for kernel's API
 	// coverity[cert_arr39_c_violation:SUPPRESS]
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
+	pmoal_drv_timer timer = timer_container_of(timer, t, tl);
+#else
 	pmoal_drv_timer timer = from_timer(timer, t, tl);
+#endif
 #else
 static inline void woal_timer_handler(unsigned long fcontext)
 {
